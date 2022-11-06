@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 void showToken(const char *name) {
-    printf("%d %s %s \n", yylineno, name, yytext);
+    printf("%d %s %s\n", yylineno, name, yytext);
 }
 
 int main() {
@@ -59,7 +59,7 @@ int main() {
         } else if (token == BINOP) {
             showToken("BINOP");
         } else if (token == COMMENT) {
-            showToken("COMMENT");
+            printf("%d COMMENT //\n",yylineno);
         } else if (token == ID) {
             showToken("ID");
         } else if (token == NUM) {

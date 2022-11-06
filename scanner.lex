@@ -12,6 +12,9 @@ whitespace ([\t\n ])
 ascii (\x([2-6][0-9a-fA-F]|7[0-9a-eA-E]|09))
 escape (\\(\\|n|\"|r|t|0))
 
+%x QUOTE
+%x COMM
+
 %%
 void                      return VOID;
 int                      return INT;
@@ -38,10 +41,14 @@ continue                      return CONTINUE;
 "="                                           return ASSIGN;
 "=="|"!="|"<"|">"|"<="|">="                        return RELOP;
 "+"|"-"|"*"|"/"                                       return BINOP;
-"//"[^\r\n]*[\r\n]                                   return COMMENT;
+"//"                                              BEGIN(COMM);
+<COMM>[^\r\n]*                                  return COMMENT;
+<COMM>[\r\n]                                        BEGIN(INITIAL);
 {letter}+({digit}|{letter})*                         return ID;
-0|[1-9]{digit}*                                         return NUM;
-\"({letter}|{digit}|{ascii}|{escape})*\"                 return STRING;
+0|[1-9]{digit}*                                                        return NUM;
+\"                                                                        BEGIN(QUOTE);
+<QUOTE>({letter}|{digit}|{ascii}|{escape}|{whitespace})*                 return STRING;
+<QUOTE>\"                                                             BEGIN(INITIAL);
 {whitespace}                                  ;
 .         printf("Lex doesn't know what that is!\n");
 %%

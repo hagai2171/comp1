@@ -1,9 +1,113 @@
 #include "tokens.hpp"
 #include <stdio.h>
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+void checkString(string str) {
+    for (int i = 0; i < str.size(); i++) {
+        if (str[i] == '\\') {
+            if (i == str.size() - 1) {
+                printf("Error unclosed string\n");
+                exit(0);
+            }
+            if (str[i + 1] == 'n') {
+                i += 1;
+                continue;
+            }
+            if (str[i + 1] == 't') {
+                i += 1;
+                continue;
+            }
+            if (str[i + 1] == 'r') {
+                i += 1;
+                continue;
+            }
+            if (str[i + 1] == '\\') {
+                i += 1;
+                continue;
+            }
+            if (str[i + 1] == '\"') {
+                i += 1;
+                continue;
+            }
+            if (str[i + 1] == 'x') {
+                if (i >= str.size() - 3) {
+                    if (i == str.size() - 3) {
+                        printf("Error undefined escape sequence \\x%c\n", str[i+ 2]);
+                    } else {
+                        printf("Error undefined escape sequence \\x\n");
+                    }
+                    exit(0);
+                }
+                string part = str.substr(i + 2, 2);
+                char ch = stoul(part, nullptr, 16);
+                if (str[i+2] < '0' || str[i+2] > '7' ||
+                    !((str[i+3] >= '0' && str[i+3] <= '9') ||
+                      (str[i+3] >= 'a' && str[i+3] <= 'f') ||
+                      (str[i+3] >= 'A' && str[i+3] <= 'F'))){
+                    cout << "Error undefined escape sequence x" << part <<endl;
+                    exit(0);
+                }
+                i += 3;
+                continue;
+            }
+            printf("Error undefined escape sequence %c\n", str[i + 1]);
+            exit(0);
+        }
+    }
+}
+void printString(string str) {
+    for (int i = 0; i < str.size(); i++) {
+        if (str[i] == '\\') {
+            if (str[i + 1] == 'n') {
+                printf("\n");
+                i += 1;
+                continue;
+            }
+            if (str[i + 1] == 't') {
+                printf("\t");
+                i += 1;
+                continue;
+            }
+            if (str[i + 1] == 'r') {
+                printf("\r");
+                i += 1;
+                continue;
+            }
+            if (str[i + 1] == '\\') {
+                printf("\\");
+                i += 1;
+                continue;
+            }
+            if (str[i + 1] == '\"') {
+                printf("\"");
+                i += 1;
+                continue;
+            }
+            if (str[i + 1] == 'x') {
+                string part = str.substr(i + 2, 2);
+                char ch = stoul(part, nullptr, 16);
+                cout << ch;
+                i += 3;
+                continue;
+            }
+        }
+        cout << str[i];
+    }
+    cout << endl;
+}
 
 void showToken(const char *name) {
+    if (strcmp(name, "STRING") == 0) {
+        checkString((string) yytext);
+        printf("%d %s ", yylineno, name);
+        printString((string) yytext);
+        return;
+    }
     printf("%d %s %s\n", yylineno, name, yytext);
 }
+
 
 int main() {
     int token;
@@ -59,7 +163,7 @@ int main() {
         } else if (token == BINOP) {
             showToken("BINOP");
         } else if (token == COMMENT) {
-            printf("%d COMMENT //\n",yylineno);
+            printf("%d COMMENT //\n", yylineno);
         } else if (token == ID) {
             showToken("ID");
         } else if (token == NUM) {

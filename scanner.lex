@@ -2,6 +2,7 @@
  /* Declarations section */
 #include "tokens.hpp"
 #include <stdio.h>
+int line;
 %}
 
 %option yylineno
@@ -11,6 +12,7 @@ letter ([a-zA-Z])
 whitespace ([\t\n ])
 ascii (\x([2-6][0-9a-fA-F]|7[0-9a-eA-E]|09))
 escape (\\(\\|n|\"|r|t|0))
+signs ([ -!#-/:-@\[-`\{-~])
 
 %x QUOTE
 %x COMM
@@ -46,9 +48,9 @@ continue                      return CONTINUE;
 <COMM>[\r\n]                                        BEGIN(INITIAL);
 {letter}+({digit}|{letter})*                         return ID;
 0|[1-9]{digit}*                                                        return NUM;
-\"                                                                        BEGIN(QUOTE);
-<QUOTE>({letter}|{digit}|{ascii}|{escape}|{whitespace})*                 return STRING;
-<QUOTE>\"                                                             BEGIN(INITIAL);
+\"                                                                        {line = yylineno; BEGIN(QUOTE);}
+<QUOTE>({letter}|{digit}|{ascii}|{escape}|{whitespace}|{signs})*          {if (line == yylineno) {return STRING;} else {printf ("Error unclosed string\n"); exit(0);}}
+<QUOTE>\"                                                           {if (line == yylineno) { BEGIN(INITIAL);} else {printf ("Error unclosed string\n"); exit(0);}}
 {whitespace}                                  ;
-.         printf("Lex doesn't know what that is!\n");
+.         {printf("Error %s\n", yytext); exit(0);}
 %%

@@ -47,6 +47,8 @@ continue                      return CONTINUE;
 <COMM>[^\r\n]*                                  return COMMENT;
 <COMM>[\r\n]                                        BEGIN(INITIAL);
 {letter}+({digit}|{letter})*                         return ID;
+0{digit}+                                        {printf("Error %s\n", yytext); exit(0);}
+{digit}+{letter}+                                   {printf("Error %s\n", yytext); exit(0);}
 0|[1-9]{digit}*                                                        return NUM;
 \"                                                                        {line = yylineno; BEGIN(QUOTE);}
 <QUOTE>({letter}|{digit}|{ascii}|{escape}|{whitespace}|{signs})*          {if (line == yylineno) {return STRING;} else {printf ("Error unclosed string\n"); exit(0);}}

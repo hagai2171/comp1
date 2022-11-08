@@ -4,6 +4,7 @@
 #include <cstring>
 
 using namespace std;
+
 void checkString(string str) {
     for (int i = 0; i < str.size(); i++) {
         if (str[i] == '\\') {
@@ -12,6 +13,10 @@ void checkString(string str) {
                 exit(0);
             }
             if (str[i + 1] == 'n') {
+                if (i == 0){
+                    printf("Error undefined escape sequence \\n\n");
+                    exit(0);
+                }
                 i += 1;
                 continue;
             }
@@ -20,6 +25,10 @@ void checkString(string str) {
                 continue;
             }
             if (str[i + 1] == 'r') {
+                if (i == 0){
+                    printf("Error undefined escape sequence \\r\n");
+                    exit(0);
+                }
                 i += 1;
                 continue;
             }
@@ -30,6 +39,9 @@ void checkString(string str) {
             if (str[i + 1] == '\"') {
                 i += 1;
                 continue;
+            }
+            if (str[i+1] == '0'){
+                break;
             }
             if (str[i + 1] == 'x') {
                 if (i >= str.size() - 3) {
@@ -57,6 +69,7 @@ void checkString(string str) {
         }
     }
 }
+
 void printString(string str) {
     for (int i = 0; i < str.size(); i++) {
         if (str[i] == '\\') {
@@ -84,6 +97,9 @@ void printString(string str) {
                 printf("\"");
                 i += 1;
                 continue;
+            }
+            if (str[i + 1] == '0'){
+                break;
             }
             if (str[i + 1] == 'x') {
                 string part = str.substr(i + 2, 2);

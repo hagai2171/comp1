@@ -2,68 +2,85 @@
 #include <stdio.h>
 #include <iostream>
 #include <cstring>
+#include <cassert>
 
 using namespace std;
 
 void checkString(string str) {
-    for (int i = 0; i < str.size(); i++) {
+    int size = str.size();
+    if (str[size - 1] != '\"'){
+        printf ("Error unclosed string\n");
+        exit(0);
+    }
+    for (int i = 0; i < size - 1; i++) {
         if (str[i] == '\\') {
-            if (i == str.size() - 1) {
+            if (i == size - 2 && (i == 0 || str[i - 1] != '\\')) {
                 printf("Error unclosed string\n");
                 exit(0);
             }
+            assert(i + 1 < size - 1);
             if (str[i + 1] == 'n') {
-                if (i == 0){
+                if (i == 0 && size == 3) {
                     printf("Error undefined escape sequence \\n\n");
                     exit(0);
                 }
                 i += 1;
                 continue;
             }
+            assert(i + 1 < size - 1);
             if (str[i + 1] == 't') {
                 i += 1;
                 continue;
             }
+            assert(i + 1 < size - 1);
             if (str[i + 1] == 'r') {
-                if (i == 0){
-                    printf("Error undefined escape sequence \\r\n");
-                    exit(0);
-                }
+//                if (i == 0 && size == 3) {
+//                    printf("Error undefined escape sequence \\r\n");
+//                    exit(0);
+//                }
                 i += 1;
                 continue;
             }
+            assert(i + 1 < size - 1);
             if (str[i + 1] == '\\') {
                 i += 1;
                 continue;
             }
+            assert(i + 1 < size - 1);
             if (str[i + 1] == '\"') {
                 i += 1;
                 continue;
             }
-            if (str[i+1] == '0'){
+            assert(i + 1 < size - 1);
+            if (str[i + 1] == '0') {
                 break;
             }
+            assert(i + 1 < size - 1);
             if (str[i + 1] == 'x') {
-                if (i >= str.size() - 3) {
-                    if (i == str.size() - 3) {
-                        printf("Error undefined escape sequence \\x%c\n", str[i+ 2]);
+                if (i >= size - 4) {
+                    if (i == size - 4) {
+                        assert(i + 2 < size - 1);
+                        printf("Error undefined escape sequence x%c\n", str[i + 2]);
                     } else {
-                        printf("Error undefined escape sequence \\x\n");
+                        printf("Error undefined escape sequence x\n");
                     }
                     exit(0);
                 }
+                assert(i + 3 < size - 1);
                 string part = str.substr(i + 2, 2);
-                char ch = stoul(part, nullptr, 16);
-                if (str[i+2] < '0' || str[i+2] > '7' ||
-                    !((str[i+3] >= '0' && str[i+3] <= '9') ||
-                      (str[i+3] >= 'a' && str[i+3] <= 'f') ||
-                      (str[i+3] >= 'A' && str[i+3] <= 'F'))){
-                    cout << "Error undefined escape sequence x" << part <<endl;
+                if (str[i + 2] == '0' && str[i + 3] == '0')
+                    break;
+                if (str[i + 2] < '0' || str[i + 2] > '7' ||
+                    !((str[i + 3] >= '0' && str[i + 3] <= '9') ||
+                      (str[i + 3] >= 'a' && str[i + 3] <= 'f') ||
+                      (str[i + 3] >= 'A' && str[i + 3] <= 'F'))) {
+                    cout << "Error undefined escape sequence x" << part << endl;
                     exit(0);
                 }
                 i += 3;
                 continue;
             }
+            assert(i + 1 < size - 1);
             printf("Error undefined escape sequence %c\n", str[i + 1]);
             exit(0);
         }
@@ -71,7 +88,8 @@ void checkString(string str) {
 }
 
 void printString(string str) {
-    for (int i = 0; i < str.size(); i++) {
+    int size = str.size();
+    for (int i = 0; i < size - 1; i++) {
         if (str[i] == '\\') {
             if (str[i + 1] == 'n') {
                 printf("\n");
@@ -98,10 +116,12 @@ void printString(string str) {
                 i += 1;
                 continue;
             }
-            if (str[i + 1] == '0'){
+            if (str[i + 1] == '0') {
                 break;
             }
             if (str[i + 1] == 'x') {
+                if (str[i + 2] == '0' && str[i + 3] == '0')
+                    break;
                 string part = str.substr(i + 2, 2);
                 char ch = stoul(part, nullptr, 16);
                 cout << ch;
@@ -115,12 +135,6 @@ void printString(string str) {
 }
 
 void showToken(const char *name) {
-    if (strcmp(name, "STRING") == 0) {
-        checkString((string) yytext);
-        printf("%d %s ", yylineno, name);
-        printString((string) yytext);
-        return;
-    }
     printf("%d %s %s\n", yylineno, name, yytext);
 }
 
@@ -185,7 +199,9 @@ int main() {
         } else if (token == NUM) {
             showToken("NUM");
         } else if (token == STRING) {
-            showToken("STRING");
+            checkString((string) yytext);
+            printf("%d STRING ", yylineno);
+            printString((string) yytext);
         }
     }
     return 0;

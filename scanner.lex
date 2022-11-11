@@ -12,7 +12,7 @@ letter ([a-zA-Z])
 whitespace ([\t\n ])
 ascii (\x([2-6][0-9a-fA-F]|7[0-9a-eA-E]|09))
 escape (\\(\\|n|\"|r|t|0))
-signs ([ -!#-/:-@\[-`\{-~])
+signs ([\x20-\x21\x23-\x5B\x5D-\x7E])
 
 %x QUOTE
 %x COMM
@@ -43,16 +43,15 @@ continue                      return CONTINUE;
 "="                                           return ASSIGN;
 "=="|"!="|"<"|">"|"<="|">="                        return RELOP;
 "+"|"-"|"*"|"/"                                       return BINOP;
-"//"                                              BEGIN(COMM);
-<COMM>[^\r\n]*                                  return COMMENT;
-<COMM>[\r\n]                                        BEGIN(INITIAL);
+"//"                                              {BEGIN(COMM); return COMMENT;}
+<COMM>[^\r\n]*                                  ;
+<COMM>(\r\n|\n|\r)                               BEGIN(INITIAL);
 {letter}+({digit}|{letter})*                         return ID;
-0{digit}+                                        {printf("Error %s\n", yytext); exit(0);}
-{digit}+{letter}+                                   {printf("Error %s\n", yytext); exit(0);}
-0|[1-9]{digit}*                                                        return NUM;
-\"                                                                        {line = yylineno; BEGIN(QUOTE);}
-<QUOTE>({letter}|{digit}|{ascii}|{escape}|{whitespace}|{signs})*          {if (line == yylineno) {return STRING;} else {printf ("Error unclosed string\n"); exit(0);}}
-<QUOTE>\"                                                           {if (line == yylineno) { BEGIN(INITIAL);} else {printf ("Error unclosed string\n"); exit(0);}}
-{whitespace}                                  ;
+0|[1-9]{digit}*                                     return NUM;
+\"                                              {line = yylineno; BEGIN(QUOTE);}
+<QUOTE>([^\"\\]|(\\.))*(\")                    {if (line == yylineno) { BEGIN(INITIAL); return STRING;} else {printf ("Error unclosed string\n"); exit(0);}}
+<QUOTE>.                    {printf ("Error unclosed string\n"); exit(0);}
+{whitespace}                               ;
+[\n\r]+       ;
 .         {printf("Error %s\n", yytext); exit(0);}
 %%

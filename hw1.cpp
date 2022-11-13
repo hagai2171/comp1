@@ -20,10 +20,10 @@ void checkString(string str) {
             }
             assert(i + 1 < size - 1);
             if (str[i + 1] == 'n') {
-                if (i == 0 && size == 3) {
-                    printf("Error undefined escape sequence \\n\n");
-                    exit(0);
-                }
+//                if (i == 0 && size == 3) {
+//                    printf("Error undefined escape sequence \\n\n");
+//                    exit(0);
+//                }
                 i += 1;
                 continue;
             }
